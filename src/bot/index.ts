@@ -101,7 +101,12 @@ export default class Bot {
                 console.log(link.full, "->", url);
                 await loadingPromise;
                 await msg.reactions.removeAll();
-                if (url) await msg.reply(url);
+                if (url) {
+                    await msg.reply(url);
+                    await msg.react("✔️");
+                } else {
+                    await msg.react("❌");
+                }
             }
         });
     }
