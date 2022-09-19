@@ -12,13 +12,13 @@ const port = isNaN(Number(process.env.PORT)) ? 3000 : Number(process.env.PORT);
 const app = express();
 
 // expose images folder
-app.use(express.static('images'))
+app.use(express.static('./images'));
 
 // instantiate bot
 const bot = new Bot();
 
 // start http server on preset port
 app.listen(port, async() => {
-    bot.start(); // start bot
+    await bot.start(); // start bot
     console.log(`HTTP server started on localhost:${port}`);
 });
