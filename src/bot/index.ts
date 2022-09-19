@@ -67,8 +67,12 @@ export default class Bot {
     public async screenshot(browser: puppeteer.Browser, url: string): Promise<string|null>
     {
         const page = await browser.newPage();
-        await page.setViewport(this.defaultViewPort);
-        await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36");
+
+        const pageSetupPromises: Promise<void>[] = [];
+        pageSetupPromises.push(page.setViewport(this.defaultViewPort));
+        pageSetupPromises.push(page.setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"));
+        await Promise.all(pageSetupPromises);
+
         await page.goto(url, this.defaultWaitForOptions);
         await page.screenshot({ ...this.defaultScreenShotOptions, path: this.defaultImageLocation });
         const closePromise =  page.close();
