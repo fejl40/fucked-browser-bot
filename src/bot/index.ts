@@ -82,7 +82,7 @@ export default class Bot {
         console.log("Starting...");
         const browser = await puppeteer.launch({
             executablePath: process.env.CHROME_BIN,
-            args: ['--disable-gpu', '--headless']
+            args: ['--no-sandbox', '--disable-gpu', '--headless']
         });
         await this.client.login(process.env.DISCORD_TOKEN);
         console.log("Started");
