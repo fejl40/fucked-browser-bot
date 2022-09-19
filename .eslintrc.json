@@ -1,5 +1,6 @@
 {
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+    "ignorePatterns": ["**/link.ts"],
     "rules": {
         // Additional, per-project rules...
     }
