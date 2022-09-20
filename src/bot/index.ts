@@ -120,7 +120,7 @@ export default class Bot {
                 await msg.reactions.removeAll();
                 if (url) {
                     await msg.reply(url);
-                    await msg.react("✔️");
+                    await msg.react("✔");
                 } else {
                     await msg.react("❌");
                 }
