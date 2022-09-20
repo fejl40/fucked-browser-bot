@@ -1,4 +1,5 @@
 import linkRegex from "./link";
+import axios from "axios";
 import { uploadImage } from "./uploadImage";
 import { Client, GatewayIntentBits, Message } from "discord.js";
 import * as puppeteer from "puppeteer";
@@ -61,11 +62,19 @@ export default class Bot {
             index: link.index,
             fullMessage: link.input
         };
+        const lastPartOfUri = obj.uri.substring(obj.uri.lastIndexOf("/")).toLowerCase();
+        if (lastPartOfUri.includes(".jpeg")) return null;
+        if (lastPartOfUri.includes(".png")) return null;
+        if (lastPartOfUri.includes(".svg")) return null;
+        if (lastPartOfUri.includes(".webp")) return null;
         return obj;
     }
 
     public async screenshot(browser: puppeteer.Browser, url: string): Promise<string|null>
     {
+        const req = await axios.get(url);
+        if (req.status !== 200) return null;
+
         const page = await browser.newPage();
 
         const pageSetupPromises: Promise<void>[] = [];
@@ -94,6 +103,14 @@ export default class Bot {
         this.client.on("messageCreate", async(msg: Message) => {
             if (msg.author.bot) return;
             const link = this.linkFromString(msg.content);
+            if (link) {
+                const lastPartOfUri = link.uri.substring(link.uri.lastIndexOf("/")).toLowerCase();
+                if (lastPartOfUri.includes(".jpeg")) return;
+                if (lastPartOfUri.includes(".png")) return;
+                if (lastPartOfUri.includes(".svg")) return;
+                if (lastPartOfUri.includes(".webp")) return;
+            }
+
             if (link) {
                 console.log("Found link!");
                 const loadingPromise = msg.react("🧠");
