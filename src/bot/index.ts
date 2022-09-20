@@ -72,8 +72,14 @@ export default class Bot {
 
     public async screenshot(browser: puppeteer.Browser, url: string): Promise<string|null>
     {
-        const req = await axios.get(url);
-        if (req.status !== 200) return null;
+        try {
+            const req = await axios.get(url);
+            if (req.status !== 200) return null;
+        } catch (error) {
+            console.error("invalid url", url);
+            return null;
+        }
+        
 
         const page = await browser.newPage();
 
