@@ -39,6 +39,7 @@ export default class Bot {
         };
 
         this.defaultScreenShotOptions = {
+            fullPage: true,
             type: "jpeg",
             quality: 100
         };
@@ -67,6 +68,7 @@ export default class Bot {
         if (lastPartOfUri.includes(".png")) return null;
         if (lastPartOfUri.includes(".svg")) return null;
         if (lastPartOfUri.includes(".webp")) return null;
+        if (obj.body.toLowerCase().includes("tenor.com")) return null;
         return obj;
     }
 
@@ -83,9 +85,10 @@ export default class Bot {
 
         const page = await browser.newPage();
 
-        const pageSetupPromises: Promise<void>[] = [];
-        pageSetupPromises.push(page.setViewport(this.defaultViewPort));
+        const pageSetupPromises: Promise<void|unknown>[] = [];
+        //pageSetupPromises.push(page.setViewport(this.defaultViewPort));
         pageSetupPromises.push(page.setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"));
+        pageSetupPromises.push(page.evaluate("console.log('Asshole!');"));
         await Promise.all(pageSetupPromises);
 
         await page.goto(url, this.defaultWaitForOptions);
@@ -109,13 +112,6 @@ export default class Bot {
         this.client.on("messageCreate", async(msg: Message) => {
             if (msg.author.bot) return;
             const link = this.linkFromString(msg.content);
-            if (link) {
-                const lastPartOfUri = link.uri.substring(link.uri.lastIndexOf("/")).toLowerCase();
-                if (lastPartOfUri.includes(".jpeg")) return;
-                if (lastPartOfUri.includes(".png")) return;
-                if (lastPartOfUri.includes(".svg")) return;
-                if (lastPartOfUri.includes(".webp")) return;
-            }
 
             if (link) {
                 console.log("Found link!");
