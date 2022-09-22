@@ -1,7 +1,7 @@
 import linkRegex from "./link";
 import axios from "axios";
 import { uploadImage } from "./uploadImage";
-import { Client, GatewayIntentBits, Message } from "discord.js";
+import { Client, Collection, GatewayIntentBits, Message, REST, SlashCommandBuilder } from "discord.js";
 import * as puppeteer from "puppeteer";
 
 
@@ -68,7 +68,6 @@ export default class Bot {
         if (lastPartOfUri.includes(".png")) return null;
         if (lastPartOfUri.includes(".svg")) return null;
         if (lastPartOfUri.includes(".webp")) return null;
-        if (obj.body.toLowerCase().includes("tenor.com")) return null;
         return obj;
     }
 
@@ -86,7 +85,7 @@ export default class Bot {
         const page = await browser.newPage();
 
         const pageSetupPromises: Promise<void|unknown>[] = [];
-        //pageSetupPromises.push(page.setViewport(this.defaultViewPort));
+        pageSetupPromises.push(page.setViewport(this.defaultViewPort));
         pageSetupPromises.push(page.setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"));
         pageSetupPromises.push(page.evaluate("console.log('Asshole!');"));
         await Promise.all(pageSetupPromises);
@@ -99,6 +98,27 @@ export default class Bot {
         return imageUrl;
     }
 
+    public async attemptReplyWithScreenshot(browser: puppeteer.Browser, msg: Message)
+    {
+        if (msg.author.bot) return;
+        const link = this.linkFromString(msg.content);
+
+        if (link) {
+            console.log("Found link!");
+            const loadingPromise = msg.react("🧠");
+            const url = await this.screenshot(browser, link.full);
+            console.log(link.full, "->", url);
+            await loadingPromise;
+            await msg.reactions.removeAll();
+            if (url) {
+                await msg.reply(url);
+                await msg.react("✔");
+            } else {
+                await msg.react("❌");
+            }
+        }
+    }
+
     public async start()
     {
         console.log("Starting...");
@@ -106,27 +126,14 @@ export default class Bot {
             executablePath: process.env.CHROME_BIN,
             args: ['--no-sandbox', '--disable-gpu', '--headless']
         });
+        if (process.env.DISCORD_TOKEN == null) throw new Error("DISCORD_TOKEN is null or undefined");
         await this.client.login(process.env.DISCORD_TOKEN);
         console.log("Started");
 
         this.client.on("messageCreate", async(msg: Message) => {
-            if (msg.author.bot) return;
-            const link = this.linkFromString(msg.content);
-
-            if (link) {
-                console.log("Found link!");
-                const loadingPromise = msg.react("🧠");
-                const url = await this.screenshot(browser, link.full);
-                console.log(link.full, "->", url);
-                await loadingPromise;
-                await msg.reactions.removeAll();
-                if (url) {
-                    await msg.reply(url);
-                    await msg.react("✔");
-                } else {
-                    await msg.react("❌");
-                }
-            }
+            const name = "nav".toLowerCase();
+            if (msg.content[0] !== "/" && !msg.content.toLowerCase().substring(1, name.length).includes(name)) return;
+            await this.attemptReplyWithScreenshot(browser, msg);
         });
     }
 }
