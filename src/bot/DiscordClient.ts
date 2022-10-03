@@ -1,15 +1,12 @@
-import { Client, GatewayIntentBits, Message } from "discord.js";
+import { Client, GatewayIntentBits} from "discord.js";
 import * as puppeteer from "puppeteer";
-import { ScreenshotService } from "./service/ScreenshotService"
 
 
-export default class Bot {
+export class DiscordClient {
+
     client: Client;
-    screenshotService: ScreenshotService
 
     constructor() {
-        this.screenshotService = new ScreenshotService
-        
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
@@ -22,7 +19,8 @@ export default class Bot {
         });
     }
 
-    public async start() {
+
+    public async login(): Promise<puppeteer.Browser> {
         console.log("Starting...");
         const browser = await puppeteer.launch({
             executablePath: process.env.CHROME_BIN,
@@ -32,10 +30,7 @@ export default class Bot {
         await this.client.login(process.env.DISCORD_TOKEN);
         console.log("Started");
 
-        this.client.on("messageCreate", async(msg: Message) => {
-            const name = "nav".toLowerCase();
-            if (msg.content[0] !== "/" && !msg.content.toLowerCase().substring(1, name.length).includes(name)) return;
-            await this.screenshotService.attemptReplyWithScreenshot(browser, msg);
-        });
+        return browser
     }
+
 }
