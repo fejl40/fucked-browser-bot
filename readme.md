@@ -2,11 +2,14 @@
 
 ## Usage 
 First clone the repo
-with a terminal navigate into the newly cloned repo. And run 
+
+ ``` git clone https://github.com/fejl40/fucked-browser-bot.git ```
+
+With a terminal navigate into the newly cloned repo. And run: 
 
 ``` docker build --tag browserbot:latest . ```
 
-this will create a docker image of browser bot. To run the browserbot use the following:
+This will create a docker image of browser bot. To run the browserbot use the following:
 
 ``` docker run -d --name browserbot -e DISCORD_TOKEN=YOUR_TOKEN browserbot:latest ```
 
