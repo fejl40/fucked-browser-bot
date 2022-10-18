@@ -23,15 +23,15 @@ export default class Bot {
         });
     }
 
-    public async start() {
+    public async start(DISCORD_TOKEN: string, CLIENT_ID: string) {
         logger.info(`Starting...`)
+
         const browser = await puppeteer.launch({
             executablePath: process.env.CHROME_BIN,
             args: ['--no-sandbox', '--disable-gpu', '--headless']
         });
-        logger.debug(`Start: process.env.DISCORD_TOKEN = ${process.env.DISCORD_TOKEN}`)
-        if (process.env.DISCORD_TOKEN == null) throw new Error("DISCORD_TOKEN is null or undefined");
-        await this.client.login(process.env.DISCORD_TOKEN);
+
+             await this.client.login(DISCORD_TOKEN);
         logger.info(`Started`)
 
         this.client.on("messageCreate", async(msg: Message) => {
