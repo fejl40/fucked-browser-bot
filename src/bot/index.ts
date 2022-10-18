@@ -2,6 +2,7 @@ import { Client, GatewayIntentBits, Message } from "discord.js";
 import * as puppeteer from "puppeteer";
 import { ScreenshotService } from "./service/ScreenshotService"
 import { logger } from "../mainlogger";
+import { RegisterService } from "./service/RegisterService";
 
 
 export default class Bot {
@@ -31,7 +32,9 @@ export default class Bot {
             args: ['--no-sandbox', '--disable-gpu', '--headless']
         });
 
-             await this.client.login(DISCORD_TOKEN);
+        new RegisterService(DISCORD_TOKEN, CLIENT_ID).registerCommands
+     
+        await this.client.login(DISCORD_TOKEN);
         logger.info(`Started`)
 
         this.client.on("messageCreate", async(msg: Message) => {
