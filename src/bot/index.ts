@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, Message } from "discord.js";
 import * as puppeteer from "puppeteer";
 import { ScreenshotService } from "./service/ScreenshotService"
+import { logger } from "../mainlogger";
 
 
 export default class Bot {
@@ -23,14 +24,15 @@ export default class Bot {
     }
 
     public async start() {
-        console.log("Starting...");
+        logger.info(`Starting...`)
         const browser = await puppeteer.launch({
             executablePath: process.env.CHROME_BIN,
             args: ['--no-sandbox', '--disable-gpu', '--headless']
         });
+        logger.debug(`Start: process.env.DISCORD_TOKEN = ${process.env.DISCORD_TOKEN}`)
         if (process.env.DISCORD_TOKEN == null) throw new Error("DISCORD_TOKEN is null or undefined");
         await this.client.login(process.env.DISCORD_TOKEN);
-        console.log("Started");
+        logger.info(`Started`)
 
         this.client.on("messageCreate", async(msg: Message) => {
             const name = "nav".toLowerCase();

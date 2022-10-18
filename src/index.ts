@@ -1,6 +1,7 @@
 import express from "express";
 import Bot from "./bot";
 import dotenv from "dotenv";
+import { logger } from "./mainlogger";
 
 // Load environment variables
 dotenv.config();
@@ -20,5 +21,5 @@ const bot = new Bot();
 // start http server on preset port
 app.listen(port, async() => {
     await bot.start(); // start bot
-    console.log(`HTTP server started on localhost:${port}`);
+    logger.info(`HTTP server started on localhost:${port}`);
 });
