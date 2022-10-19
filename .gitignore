@@ -105,4 +105,4 @@ dist
 *.jpeg
 
 #We dont care about logfile in git
-logfile.txt
+logs/logfile.txt

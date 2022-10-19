@@ -19,7 +19,7 @@ const logger: Logger = new Logger({
       );
 
 function logToTransport(LogObject: ILogObject) {
-    appendFileSync("logFile.txt", JSON.stringify(LogObject)+ "\r\n")
+    appendFileSync("logs/logFile.txt", JSON.stringify(LogObject)+ "\r\n")
 }
 
   export { logger };
