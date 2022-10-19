@@ -8,10 +8,11 @@ import { RegisterService } from "./service/RegisterService";
 export default class Bot {
     client: Client;
     screenshotService: ScreenshotService
+    registerService: RegisterService
 
     constructor() {
         this.screenshotService = new ScreenshotService
-        
+        this.registerService = new RegisterService
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
@@ -27,12 +28,12 @@ export default class Bot {
     public async start(DISCORD_TOKEN: string, CLIENT_ID: string) {
         logger.info(`Starting...`)
 
+        this.registerService.registerCommands(CLIENT_ID, DISCORD_TOKEN)
+
         const browser = await puppeteer.launch({
             executablePath: process.env.CHROME_BIN,
             args: ['--no-sandbox', '--disable-gpu', '--headless']
         });
-
-        new RegisterService(DISCORD_TOKEN, CLIENT_ID).registerCommands
      
         await this.client.login(DISCORD_TOKEN);
         logger.info(`Started`)

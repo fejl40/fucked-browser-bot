@@ -1,7 +1,7 @@
 import * as puppeteer from "puppeteer";
 import axios from "axios";
 import { uploadImage } from "../uploadImage";
-import { Client, Collection, GatewayIntentBits, Message, REST, SlashCommandBuilder } from "discord.js";
+import { Message } from "discord.js";
 import {FilterService} from "../service/FilterService"
 import {logger} from "../../mainlogger"
 

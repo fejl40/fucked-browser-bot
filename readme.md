@@ -11,7 +11,7 @@ With a terminal navigate into the newly cloned repo. And run:
 
 This will create a docker image of browser bot. To run the browserbot use the following:
 
-``` docker run -d --name browserbot -e DISCORD_TOKEN=YOUR_TOKEN browserbot:latest ```
+``` docker run -d --name browserbot -e CLIENT_ID=CLIENT_ID -e DISCORD_TOKEN=YOUR_TOKEN browserbot:latest ```
 
 ⚠️ you must have build the image before running it
 
