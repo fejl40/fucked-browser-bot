@@ -72,12 +72,8 @@ export class ScreenshotService {
     }
 
     public async attemptReplyWithScreenshot(browser: puppeteer.Browser, url: string): Promise<string | null> {
-        console.log(url);
         const link = this.filterService.linkFromString(url);
-
-        if (link) {
-            return await this.screenshot(browser, link.full);
-        }
+        if (link) return await this.screenshot(browser, link.full);
         return null;
     }
 }
