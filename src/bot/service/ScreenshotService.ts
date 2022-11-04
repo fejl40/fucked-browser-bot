@@ -61,9 +61,9 @@ export class ScreenshotService {
         await page.screenshot({ ...this.defaultScreenShotOptions, path: this.defaultImageLocation });
         const closePromise = page.close();
 
-        const defaultImageLocation = this.defaultImageLocation.startsWith("/")
-            ? this.defaultImageLocation.substring(1)
-            : this.defaultImageLocation;
+        const defaultImageLocation = this.defaultImageLocation.substring(
+            this.defaultImageLocation.lastIndexOf("/") + 1,
+        );
         const imageUrl = await this.exposeImageService.uploadImage(defaultImageLocation);
 
         await closePromise;
