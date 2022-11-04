@@ -1,7 +1,6 @@
 import * as puppeteer from "puppeteer";
 import axios from "axios";
-import { uploadImage } from "../uploadImage";
-import { Message } from "discord.js";
+import { ExposeImageService } from "./ExposeImageService";
 import { FilterService } from "../service/FilterService";
 import { logger } from "../../mainlogger";
 
@@ -11,9 +10,11 @@ export class ScreenshotService {
     defaultWaitForOptions: puppeteer.WaitForOptions;
     defaultImageLocation: string;
     filterService: FilterService;
+    exposeImageService: ExposeImageService;
 
     constructor() {
         this.filterService = new FilterService();
+        this.exposeImageService = new ExposeImageService();
 
         this.defaultViewPort = {
             width: 1920,
@@ -52,7 +53,6 @@ export class ScreenshotService {
                 "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
             ),
         );
-        pageSetupPromises.push(page.evaluate("console.log('Asshole!');")); //what?
         await Promise.all(pageSetupPromises);
 
         logger.info("opening webpage");
@@ -60,29 +60,24 @@ export class ScreenshotService {
         await page.goto(url, this.defaultWaitForOptions);
         await page.screenshot({ ...this.defaultScreenShotOptions, path: this.defaultImageLocation });
         const closePromise = page.close();
-        const imageUrl = await uploadImage(this.defaultImageLocation.substring(1));
+
+        const defaultImageLocation = this.defaultImageLocation.startsWith("/")
+            ? this.defaultImageLocation.substring(1)
+            : this.defaultImageLocation;
+        const imageUrl = await this.exposeImageService.uploadImage(defaultImageLocation);
+
         await closePromise;
         logger.info("screenshot complete");
         return imageUrl;
     }
 
-    public async attemptReplyWithScreenshot(browser: puppeteer.Browser, msg: Message) {
-        if (msg.author.bot) return;
-        const link = this.filterService.linkFromString(msg.content);
+    public async attemptReplyWithScreenshot(browser: puppeteer.Browser, url: string): Promise<string | null> {
+        console.log(url);
+        const link = this.filterService.linkFromString(url);
 
         if (link) {
-            logger.info("Found link!");
-            const loadingPromise = msg.react("🧠");
-            const url = await this.screenshot(browser, link.full);
-            logger.info(`${link.full} ->, ${url}`);
-            await loadingPromise;
-            await msg.reactions.removeAll();
-            if (url) {
-                await msg.reply(url);
-                await msg.react("✔");
-            } else {
-                await msg.react("❌");
-            }
+            return await this.screenshot(browser, link.full);
         }
+        return null;
     }
 }

@@ -1,16 +1,19 @@
-import { Client, GatewayIntentBits, Message } from "discord.js";
+import { ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction } from "discord.js";
 import * as puppeteer from "puppeteer";
 import { ScreenshotService } from "./service/ScreenshotService";
 import { logger } from "../mainlogger";
 import { RegisterService } from "./service/RegisterService";
+import { ChuckNorrisJoke, ChuckNorrisService } from "./service/ChuckNorrisService";
 
 export default class Bot {
     client: Client;
     screenshotService: ScreenshotService;
+    chuckNorrisService: ChuckNorrisService;
     registerService: RegisterService;
 
     constructor() {
         this.screenshotService = new ScreenshotService();
+        this.chuckNorrisService = new ChuckNorrisService();
         this.registerService = new RegisterService();
         this.client = new Client({
             intents: [
@@ -24,6 +27,37 @@ export default class Bot {
         });
     }
 
+    public async captureCommand(
+        interaction: ChatInputCommandInteraction,
+        url: string,
+        browser: puppeteer.Browser,
+    ): Promise<void> {
+        const imageUrlPromise = this.screenshotService.attemptReplyWithScreenshot(browser, url);
+        await interaction.reply("Navigating to webpage...");
+        const imageUrl = await imageUrlPromise;
+
+        if (imageUrl != null) {
+            await interaction.editReply(imageUrl);
+        } else {
+            await interaction.editReply("Failed to navigate to webpage");
+        }
+    }
+
+    public async chuckNorrisCommand(interaction: ChatInputCommandInteraction, category: string | null) {
+        let joke: ChuckNorrisJoke | null = null;
+        if (category) {
+            joke = await this.chuckNorrisService.getCategoryJoke(category);
+        } else {
+            joke = await this.chuckNorrisService.getRandomJoke();
+        }
+
+        if (joke) {
+            await interaction.reply(joke.value);
+        } else {
+            await interaction.reply(`I got nothin son...`);
+        }
+    }
+
     public async start(DISCORD_TOKEN: string, CLIENT_ID: string) {
         logger.info(`Starting...`);
 
@@ -35,12 +69,22 @@ export default class Bot {
         });
 
         await this.client.login(DISCORD_TOKEN);
-        logger.info(`Started`);
 
-        this.client.on("messageCreate", async (msg: Message) => {
-            const name = "nav".toLowerCase();
-            if (msg.content[0] !== "/" && !msg.content.toLowerCase().substring(1, name.length).includes(name)) return;
-            await this.screenshotService.attemptReplyWithScreenshot(browser, msg);
+        this.client.on("ready", () => {
+            logger.info(`Bot logged in as ${this.client.user?.tag}!`);
+        });
+
+        this.client.on("interactionCreate", async (interaction: Interaction) => {
+            if (!interaction.isCommand()) return;
+            const { commandName, options } = interaction;
+
+            if (commandName === "capture") {
+                const url = options.get("url")?.value as string;
+                await this.captureCommand(interaction as ChatInputCommandInteraction, url, browser);
+            } else if (commandName === "chuck") {
+                const category = options.get("category")?.value as string | null;
+                await this.chuckNorrisCommand(interaction as ChatInputCommandInteraction, category);
+            }
         });
     }
 }

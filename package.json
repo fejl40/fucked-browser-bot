@@ -8,7 +8,7 @@
 		"build": "tsc",
 		"lint": "eslint ./src/**",
 		"dev": "nodemon ./src/index.ts",
-		"start": "node ./dist",
+		"start": "NODE_ENV=production node ./dist",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"devDependencies": {
