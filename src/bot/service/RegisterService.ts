@@ -13,8 +13,10 @@ export class RegisterService {
         this.rest = new REST({ version: "10" }).setToken(discordToken);
         try {
             logger.info("Started refreshing application (/) commands.");
-
-            await this.rest.put(Routes.applicationCommands(CLIENT_ID), { body: botCommands });
+            const commands = await botCommands();
+            await this.rest.put(Routes.applicationCommands(CLIENT_ID), {
+                body: commands,
+            });
 
             logger.info("Successfully reloaded application (/) commands.");
         } catch (error) {
