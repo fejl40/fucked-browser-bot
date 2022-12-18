@@ -27,4 +27,6 @@ COPY --from=build /app/node_modules/ ./node_modules/
 COPY --from=build /app/logs/ ./logs/
 COPY --from=build /app/dist/ ./
 
+EXPOSE 3000
+
 ENTRYPOINT [ "node", "index.js" ]
