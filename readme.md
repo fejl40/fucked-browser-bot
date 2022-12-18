@@ -28,12 +28,12 @@ Image hosting service [freeimage.host API](https://freeimage.host/page/api)
 #### Docker
 With a terminal navigate into the newly cloned repo. Then run: 
 
-``` docker build --tag browserbot:latest . ```
+``` docker build -t browserbot . ```
 
 This will create a docker image of browser bot.
 
 Make a .env file using the .env-example file as a guide.
 To start the docker container with the image you've built alter *".env"* to the filepath of your own .env file and run it:
-``` docker run -d --name browserbot --env-file .env browserbot:latest ```
+``` docker run -d --name browserbot --env-file .env browserbot ```
 
 ⚠️⚠️You must have built the image before running it⚠️⚠️

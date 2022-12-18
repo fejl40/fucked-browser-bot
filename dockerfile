@@ -1,4 +1,17 @@
-FROM alpine
+FROM node AS build
+
+WORKDIR /app
+RUN chmod 755 /app
+
+COPY ./ ./
+
+RUN npm install
+RUN npm run lint
+RUN npm run build
+RUN rm -drf ./node_modules
+RUN npm install --omit=dev
+
+FROM alpine AS publish
 
 WORKDIR /app
 
@@ -10,10 +23,8 @@ RUN apk add --update chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV CHROME_BIN=/usr/bin/chromium-browser
 
-COPY . .
+COPY --from=build /app/node_modules/ ./node_modules/
+COPY --from=build /app/logs/ ./logs/
+COPY --from=build /app/dist/ ./
 
-RUN npm install
-RUN npm run lint
-RUN npm run build
-
-ENTRYPOINT [ "npm", "run", "start" ]
+ENTRYPOINT [ "node", "index.js" ]
