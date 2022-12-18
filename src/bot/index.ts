@@ -1,9 +1,21 @@
-import { ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction } from "discord.js";
+import {
+    ChatInputCommandInteraction,
+    Client,
+    GatewayIntentBits,
+    Guild,
+    GuildMember,
+    Interaction,
+    italic,
+    Partials,
+    ThreadAutoArchiveDuration,
+    UserFlags,
+} from "discord.js";
 import * as puppeteer from "puppeteer";
 import { ScreenshotService } from "./service/ScreenshotService";
 import { logger } from "../mainlogger";
 import { RegisterService } from "./service/RegisterService";
 import { ChuckNorrisJoke, ChuckNorrisService } from "./service/ChuckNorrisService";
+import { MessageAction } from "./service/action/MessageAction";
 
 export default class Bot {
     client: Client;
@@ -24,6 +36,7 @@ export default class Bot {
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.DirectMessages,
             ],
+            partials: [Partials.Channel],
         });
     }
 
@@ -71,6 +84,10 @@ export default class Bot {
         await this.client.login(DISCORD_TOKEN);
 
         this.client.on("ready", () => {
+            this.client.user?.setUsername("Awesome-O");
+            this.client.user?.setAvatar(
+                "https://i5.walmartimages.com/asr/76cee6cd-6241-4ee0-847f-ca2ea8823798.08fdc6be95e38e7e4cbd0ece6f30aac2.png",
+            );
             logger.info(`Bot logged in as ${this.client.user?.tag}!`);
         });
 
@@ -85,6 +102,54 @@ export default class Bot {
                 const category = options.get("category")?.value as string | null;
                 await this.chuckNorrisCommand(interaction as ChatInputCommandInteraction, category);
             }
+        });
+
+        this.client.on("messageCreate", async (messageCreate) => {
+            const approvedAuthors: string[] = ["916059679665311774", "379338115418030092", "227727575357718528"];
+            const guild = this.client.guilds.cache.get("988472386456268800");
+
+            const content = messageCreate.content;
+            logger.info("Modtaget DM: " + content);
+            logger.info("From: " + messageCreate.author.username);
+
+            if (!approvedAuthors.includes(messageCreate.author.id)) {
+                logger.warn("DM unauthorized access from user: " + messageCreate.author.username);
+                // messageCreate.delete();
+                return;
+            }
+
+            if (guild == undefined) {
+                logger.error("could not get guild");
+                return;
+            }
+
+            //message format <action> <target-userid> <amount>
+            // dc 123
+            const someBetterName = content.split(" ");
+
+            //smid guild med på MessageAction og lav methoder der kan dc osv
+            const messageAction = new MessageAction(someBetterName[0], someBetterName[1], guild);
+
+            if (approvedAuthors.includes(messageAction.targetUser)) {
+                messageCreate.author.send("Not allowed to disconnect that user! This incident will be reported");
+                logger.warn("friendly fire: " + messageCreate.author);
+                return;
+            }
+
+            //lav switch på action dc mute deaf osv osv..
+            switch (messageAction.action) {
+                case "dc":
+                    messageAction.disconnectMember();
+                    break;
+
+                case "deaf":
+                    messageAction.deafenMember();
+                    break;
+
+                default:
+                    break;
+            }
+            return;
         });
     }
 }
