@@ -7,39 +7,26 @@ import {
     Interaction,
     italic,
     Partials,
-    TextChannel,
     ThreadAutoArchiveDuration,
     UserFlags,
 } from "discord.js";
-import fs from "fs";
 import * as puppeteer from "puppeteer";
 import { ScreenshotService } from "./service/ScreenshotService";
 import { logger } from "../mainlogger";
 import { RegisterService } from "./service/RegisterService";
 import { ChuckNorrisJoke, ChuckNorrisService } from "./service/ChuckNorrisService";
 import { MessageAction } from "./service/action/MessageAction";
-import { ReactionService } from "./service/ReactionService";
-import { RoleModel } from "./model/RoleModel";
 
 export default class Bot {
     client: Client;
     screenshotService: ScreenshotService;
     chuckNorrisService: ChuckNorrisService;
-    reactionService: ReactionService;
     registerService: RegisterService;
-    guild: Guild | undefined;
-
-    //read from file here
-    roleModelJson =
-        '{ "channelID": "916090404431101955", "message": "her kan i react til roller :dk:", "messageId": "1059085335310643293", "roleModels": [{ "roleId": "1058897332948709396", "roleEmojiId": "1032629696023760957" }] }';
-
-    roleModel: RoleModel;
 
     constructor() {
         this.screenshotService = new ScreenshotService();
         this.chuckNorrisService = new ChuckNorrisService();
         this.registerService = new RegisterService();
-        this.reactionService = new ReactionService();
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
@@ -49,9 +36,8 @@ export default class Bot {
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.DirectMessages,
             ],
-            partials: [Partials.Channel, Partials.Reaction, Partials.Message],
+            partials: [Partials.Channel],
         });
-        this.roleModel = JSON.parse(this.roleModelJson);
     }
 
     public async captureCommand(
@@ -98,13 +84,6 @@ export default class Bot {
         await this.client.login(DISCORD_TOKEN);
 
         this.client.on("ready", () => {
-            this.guild = this.client.guilds.cache.get("988472386456268800");
-            logger.info("Online on: " + this.guild?.name);
-
-            if (this.roleModel.channelID != undefined && this.guild != undefined) {
-                this.reactionService.reactionMessage(this.guild, this.roleModel);
-            }
-
             this.client.user?.setUsername("Awesome-O");
             this.client.user?.setAvatar(
                 "https://i5.walmartimages.com/asr/76cee6cd-6241-4ee0-847f-ca2ea8823798.08fdc6be95e38e7e4cbd0ece6f30aac2.png",
@@ -127,6 +106,7 @@ export default class Bot {
 
         this.client.on("messageCreate", async (messageCreate) => {
             const approvedAuthors: string[] = ["916059679665311774", "379338115418030092", "227727575357718528"];
+            const guild = this.client.guilds.cache.get("988472386456268800");
 
             const content = messageCreate.content;
             logger.info("Modtaget DM: " + content);
@@ -138,7 +118,7 @@ export default class Bot {
                 return;
             }
 
-            if (this.guild == undefined) {
+            if (guild == undefined) {
                 logger.error("could not get guild");
                 return;
             }
@@ -148,7 +128,7 @@ export default class Bot {
             const someBetterName = content.split(" ");
 
             //smid guild med på MessageAction og lav methoder der kan dc osv
-            const messageAction = new MessageAction(someBetterName[0], someBetterName[1], this.guild);
+            const messageAction = new MessageAction(someBetterName[0], someBetterName[1], guild);
 
             if (approvedAuthors.includes(messageAction.targetUser)) {
                 messageCreate.author.send("Not allowed to disconnect that user! This incident will be reported");
@@ -170,26 +150,6 @@ export default class Bot {
                     break;
             }
             return;
-        });
-
-        this.client.on("messageReactionAdd", async (reaction, user) => {
-            if (user.bot) {
-                return;
-            }
-            const guildmember = this.guild?.members.cache.get(user.id);
-
-            if (guildmember == undefined) {
-                logger.error("messageReactionAdd: guild member undefined userId: " + user.id);
-                return;
-            }
-
-            if (reaction.message.id == this.roleModel.messageId) {
-                this.roleModel.roleModels.forEach((it) => {
-                    if (it.roleEmojiId == reaction.emoji.id) {
-                        this.reactionService.addRole(guildmember, it.roleId);
-                    }
-                });
-            }
         });
     }
 }
