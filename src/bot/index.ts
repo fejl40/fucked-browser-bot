@@ -140,10 +140,12 @@ export default class Bot {
             switch (messageAction.action) {
                 case "dc":
                     messageAction.disconnectMember();
+                    messageCreate.author.send("User disconnected");
                     break;
 
                 case "deaf":
                     messageAction.deafenMember();
+                    messageCreate.author.send("User deafen");
                     break;
 
                 default:
