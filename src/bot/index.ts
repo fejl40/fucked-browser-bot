@@ -166,6 +166,16 @@ export default class Bot {
                     messageAction.deafenMember();
                     break;
 
+                case "rolereact":
+                    if (messageCreate.author.id == "916059679665311774") {
+                        messageCreate.author.send("creating reacting roles");
+                        logger.info("creating reacting roles");
+                        if (this.roleModel.channelID != undefined && this.guild != undefined) {
+                            this.reactionService.reactionMessage(this.guild, this.roleModel);
+                        }
+                    }
+                    break;
+
                 default:
                     break;
             }
