@@ -7,26 +7,39 @@ import {
     Interaction,
     italic,
     Partials,
+    TextChannel,
     ThreadAutoArchiveDuration,
     UserFlags,
 } from "discord.js";
+import fs from "fs";
 import * as puppeteer from "puppeteer";
 import { ScreenshotService } from "./service/ScreenshotService";
 import { logger } from "../mainlogger";
 import { RegisterService } from "./service/RegisterService";
 import { ChuckNorrisJoke, ChuckNorrisService } from "./service/ChuckNorrisService";
 import { MessageAction } from "./service/action/MessageAction";
+import { ReactionService } from "./service/ReactionService";
+import { RoleModel } from "./model/RoleModel";
 
 export default class Bot {
     client: Client;
     screenshotService: ScreenshotService;
     chuckNorrisService: ChuckNorrisService;
+    reactionService: ReactionService;
     registerService: RegisterService;
+    guild: Guild | undefined;
+
+    //read from file here
+    roleModelJson =
+        '{ "channelID": "1063157534137012254", "message": "for at undgå spam! Kan man nu assign sig selv roller \n discgolf: <:discgolf:1059220499080695928> \n wow: <:wow:1059220500808728607> \n cs: <:cs:1059220497226801323> \n rust: <:rust:1059220495087710228> \n dev: <:dev:1059218844209651864> \n eft: <:eft:1045064039102955581>", "roleModels": [ { "roleId": "1063154879079657582", "roleEmojiId": "1059220499080695928" }, { "roleId": "1063154842622767114", "roleEmojiId": "1059220500808728607" }, { "roleId": "1063154935014895718", "roleEmojiId": "1059220497226801323" }, { "roleId": "1063154956871418057", "roleEmojiId": "1059220495087710228" }, { "roleId": "1063155001649803265", "roleEmojiId": "1059218844209651864" }, { "roleId": "1063155026593337476", "roleEmojiId": "1045064039102955581" } ] }';
+
+    roleModel: RoleModel;
 
     constructor() {
         this.screenshotService = new ScreenshotService();
         this.chuckNorrisService = new ChuckNorrisService();
         this.registerService = new RegisterService();
+        this.reactionService = new ReactionService();
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
@@ -36,8 +49,9 @@ export default class Bot {
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.DirectMessages,
             ],
-            partials: [Partials.Channel],
+            partials: [Partials.Channel, Partials.Reaction, Partials.Message],
         });
+        this.roleModel = JSON.parse(this.roleModelJson);
     }
 
     public async captureCommand(
@@ -84,6 +98,13 @@ export default class Bot {
         await this.client.login(DISCORD_TOKEN);
 
         this.client.on("ready", () => {
+            this.guild = this.client.guilds.cache.get("988472386456268800");
+            logger.info("Online on: " + this.guild?.name);
+
+            if (this.roleModel.channelID != undefined && this.guild != undefined) {
+                this.reactionService.reactionMessage(this.guild, this.roleModel);
+            }
+
             this.client.user?.setUsername("Awesome-O");
             this.client.user?.setAvatar(
                 "https://i5.walmartimages.com/asr/76cee6cd-6241-4ee0-847f-ca2ea8823798.08fdc6be95e38e7e4cbd0ece6f30aac2.png",
@@ -106,7 +127,6 @@ export default class Bot {
 
         this.client.on("messageCreate", async (messageCreate) => {
             const approvedAuthors: string[] = ["916059679665311774", "379338115418030092", "227727575357718528"];
-            const guild = this.client.guilds.cache.get("988472386456268800");
 
             const content = messageCreate.content;
             logger.info("Modtaget DM: " + content);
@@ -118,7 +138,7 @@ export default class Bot {
                 return;
             }
 
-            if (guild == undefined) {
+            if (this.guild == undefined) {
                 logger.error("could not get guild");
                 return;
             }
@@ -128,7 +148,7 @@ export default class Bot {
             const someBetterName = content.split(" ");
 
             //smid guild med på MessageAction og lav methoder der kan dc osv
-            const messageAction = new MessageAction(someBetterName[0], someBetterName[1], guild);
+            const messageAction = new MessageAction(someBetterName[0], someBetterName[1], this.guild);
 
             if (approvedAuthors.includes(messageAction.targetUser)) {
                 messageCreate.author.send("Not allowed to disconnect that user! This incident will be reported");
@@ -152,6 +172,26 @@ export default class Bot {
                     break;
             }
             return;
+        });
+
+        this.client.on("messageReactionAdd", async (reaction, user) => {
+            if (user.bot) {
+                return;
+            }
+            const guildmember = this.guild?.members.cache.get(user.id);
+
+            if (guildmember == undefined) {
+                logger.error("messageReactionAdd: guild member undefined userId: " + user.id);
+                return;
+            }
+
+            if (reaction.message.id == this.roleModel.messageId) {
+                this.roleModel.roleModels.forEach((it) => {
+                    if (it.roleEmojiId == reaction.emoji.id) {
+                        this.reactionService.addRole(guildmember, it.roleId);
+                    }
+                });
+            }
         });
     }
 }
