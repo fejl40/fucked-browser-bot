@@ -159,13 +159,15 @@ export default class Bot {
             //lav switch på action dc mute deaf osv osv..
             switch (messageAction.action) {
                 case "dc":
-                    messageAction.disconnectMember();
-                    messageCreate.author.send("User disconnected");
+                    // messageAction.disconnectMember();
+                    // messageCreate.author.send("User disconnected");
+                    messageCreate.author.send("Sorry im not allowed to do that");
                     break;
 
                 case "deaf":
-                    messageAction.deafenMember();
-                    messageCreate.author.send("User deafen");
+                    // messageAction.deafenMember();
+                    // messageCreate.author.send("User deafen");
+                    messageCreate.author.send("Sorry im not allowed to do that");
                     break;
 
                 case "rolereact":
