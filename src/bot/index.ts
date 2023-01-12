@@ -31,7 +31,7 @@ export default class Bot {
 
     //read from file here
     roleModelJson =
-        '{ "channelID": "1063157534137012254", "message": "for at undgå spam! Kan man nu assign sig selv roller \n discgolf: <:discgolf:1059220499080695928> \n wow: <:wow:1059220500808728607> \n cs: <:cs:1059220497226801323> \n rust: <:rust:1059220495087710228> \n dev: <:dev:1059218844209651864> \n eft: <:eft:1045064039102955581>", "roleModels": [ { "roleId": "1063154879079657582", "roleEmojiId": "1059220499080695928" }, { "roleId": "1063154842622767114", "roleEmojiId": "1059220500808728607" }, { "roleId": "1063154935014895718", "roleEmojiId": "1059220497226801323" }, { "roleId": "1063154956871418057", "roleEmojiId": "1059220495087710228" }, { "roleId": "1063155001649803265", "roleEmojiId": "1059218844209651864" }, { "roleId": "1063155026593337476", "roleEmojiId": "1045064039102955581" } ] }';
+        '{ "channelID": "1063157534137012254", "message": "for at undgå spam! Kan man nu assign sig selv roller \\n discgolf: <:discgolf:1059220499080695928> \\n wow: <:wow:1059220500808728607> \\n cs: <:cs:1059220497226801323> \\n rust: <:rust:1059220495087710228> \\n dev: <:dev:1059218844209651864> \\n eft: <:eft:1045064039102955581>", "roleModels": [ { "roleId": "1063154879079657582", "roleEmojiId": "1059220499080695928" }, { "roleId": "1063154842622767114", "roleEmojiId": "1059220500808728607" }, { "roleId": "1063154935014895718", "roleEmojiId": "1059220497226801323" }, { "roleId": "1063154956871418057", "roleEmojiId": "1059220495087710228" }, { "roleId": "1063155001649803265", "roleEmojiId": "1059218844209651864" }, { "roleId": "1063155026593337476", "roleEmojiId": "1045064039102955581" } ] }';
 
     roleModel: RoleModel;
 
